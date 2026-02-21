@@ -13,6 +13,7 @@
 #include <QApplication>
 #include <QDebug>
 #include <algorithm>
+#include "gamesizes.h"
 
 /**
  * @brief Constructor For The Snake Game Widget
@@ -24,20 +25,22 @@ Snake::Snake(QWidget *parent)
     , m_paused(false)
     , m_score(0)
     , m_gridSize(20)
-    , m_cellSize(30)
+    , m_cellSize(GameSizes::snakeCellSize())
     , m_headScale(1.0)
     , m_shadowOffset(0)
     , m_currentDifficulty(1)
 {
-    // Configure Window Properties
-    setFixedSize(600, 600);
+    // Calculate optimal size based on screen
+    QSize optimalSize = calculateOptimalSize();
+    setFixedSize(optimalSize);
+
     setFocusPolicy(Qt::StrongFocus);
     setStyleSheet("background-color: transparent;");
 
     // Initialize Visual Components
     createGradientBackground();
 
-    // Setup Game Timer
+    // Setup Game Timer (don't start yet)
     m_timer = new QTimer(this);
     connect(m_timer, &QTimer::timeout, this, &Snake::gameLoop);
 
@@ -54,7 +57,7 @@ Snake::Snake(QWidget *parent)
     m_shadowAnimation = new QPropertyAnimation(this, "shadowOffset");
     m_shadowAnimation->setDuration(200);
     m_shadowAnimation->setStartValue(0);
-    m_shadowAnimation->setEndValue(5);
+    m_shadowAnimation->setEndValue(GameSizes::snakeCellSize() / 6);
     m_shadowAnimation->setEasingCurve(QEasingCurve::OutQuad);
 
     // Setup Particle Effects Timer
@@ -63,7 +66,7 @@ Snake::Snake(QWidget *parent)
     connect(m_particleTimer, &QTimer::timeout, [this]() {
         // Update Particle Positions
         for (auto &particle : m_particles) {
-            particle.ry() += 1;
+            particle.ry() += 2;
         }
 
         // Remove Particles That Have Fallen Off Screen
@@ -79,6 +82,9 @@ Snake::Snake(QWidget *parent)
         int hue = (i * 36) % 360;
         m_snakeColors[i] = QColor::fromHsv(hue, 255, 200);
     }
+
+    // Initialize with default difficulty (but don't start game yet)
+    // We'll initialize when the widget is shown
 }
 
 /**
@@ -86,7 +92,94 @@ Snake::Snake(QWidget *parent)
  */
 Snake::~Snake()
 {
-    m_particleTimer->stop();
+    if (m_timer && m_timer->isActive()) {
+        m_timer->stop();
+    }
+    if (m_particleTimer && m_particleTimer->isActive()) {
+        m_particleTimer->stop();
+    }
+}
+
+/**
+ * @brief Show event - called when widget is shown
+ */
+void Snake::showEvent(QShowEvent *event)
+{
+    QWidget::showEvent(event);
+    // Start the game when the widget is shown
+    initGame(m_currentDifficulty);
+}
+
+/**
+ * @brief Calculate optimal widget size based on screen
+ */
+QSize Snake::calculateOptimalSize() const
+{
+    QRect screenGeo = GameSizes::screenGeometry();
+    int boardSize = GameSizes::boardSize();
+
+    // Ensure board fits within screen with margins
+    int maxDim = qMin(screenGeo.width() - 100, screenGeo.height() - 100);
+    int size = qMin(boardSize, maxDim);
+
+    return QSize(size, size);
+}
+
+/**
+ * @brief Update grid size based on difficulty
+ */
+void Snake::updateGridSizeForDifficulty()
+{
+    int baseGridSize;
+
+    // Adjust grid size based on screen size and difficulty
+    QRect screenGeo = GameSizes::screenGeometry();
+    int minDim = qMin(screenGeo.width(), screenGeo.height());
+
+    // Base grid size on screen dimensions
+    if (minDim < 600) {
+        baseGridSize = 15;  // Small screen
+    } else if (minDim < 900) {
+        baseGridSize = 20;  // Medium screen
+    } else {
+        baseGridSize = 25;  // Large screen
+    }
+
+    // Adjust based on difficulty
+    switch(m_currentDifficulty) {
+    case 0: // Easy - smaller grid
+        m_gridSize = baseGridSize - 3;
+        break;
+    case 1: // Medium
+        m_gridSize = baseGridSize;
+        break;
+    case 2: // Hard - larger grid
+        m_gridSize = baseGridSize + 3;
+        break;
+    default:
+        m_gridSize = baseGridSize;
+    }
+
+    // Ensure grid size is reasonable
+    m_gridSize = qBound(10, m_gridSize, 30);
+}
+
+/**
+ * @brief Calculate cell size based on widget size
+ */
+void Snake::calculateCellSize()
+{
+    if (m_gridSize <= 0) return;
+
+    m_cellSize = qMin(width(), height()) / m_gridSize;
+
+    // Ensure minimum cell size
+    int minCellSize = GameSizes::snakeCellSize();
+    if (m_cellSize < minCellSize) {
+        m_cellSize = minCellSize;
+        // Recalculate grid size if necessary
+        m_gridSize = qMin(width(), height()) / m_cellSize;
+    }
 }
 
 /**
@@ -95,9 +188,25 @@ Snake::~Snake()
 void Snake::createGradientBackground()
 {
     m_backgroundGradient = QLinearGradient(0, 0, width(), height());
-    m_backgroundGradient.setColorAt(0.0, QColor(20, 30, 40));
-    m_backgroundGradient.setColorAt(0.5, QColor(30, 40, 50));
-    m_backgroundGradient.setColorAt(1.0, QColor(20, 30, 40));
+
+    // Color scheme based on difficulty
+    switch(m_currentDifficulty) {
+    case 0: // Easy - greens
+        m_backgroundGradient.setColorAt(0.0, QColor(20, 40, 30));
+        m_backgroundGradient.setColorAt(0.5, QColor(30, 50, 40));
+        m_backgroundGradient.setColorAt(1.0, QColor(20, 40, 30));
+        break;
+    case 1: // Medium - blues
+        m_backgroundGradient.setColorAt(0.0, QColor(20, 30, 40));
+        m_backgroundGradient.setColorAt(0.5, QColor(30, 40, 50));
+        m_backgroundGradient.setColorAt(1.0, QColor(20, 30, 40));
+        break;
+    case 2: // Hard - reds/purples
+        m_backgroundGradient.setColorAt(0.0, QColor(40, 20, 30));
+        m_backgroundGradient.setColorAt(0.5, QColor(50, 30, 40));
+        m_backgroundGradient.setColorAt(1.0, QColor(40, 20, 30));
+        break;
+    }
 }
 
 /**
@@ -106,7 +215,21 @@ void Snake::createGradientBackground()
  */
 void Snake::initGame(int difficulty)
 {
+    // Stop any existing timers
+    if (m_timer && m_timer->isActive()) {
+        m_timer->stop();
+    }
+    if (m_particleTimer && m_particleTimer->isActive()) {
+        m_particleTimer->stop();
+    }
+
     m_currentDifficulty = difficulty;
+
+    // Update grid size based on difficulty
+    updateGridSizeForDifficulty();
+
+    // Calculate cell size
+    calculateCellSize();
 
     // Set Game Speed Based On Difficulty Level
     int speed;
@@ -115,20 +238,23 @@ void Snake::initGame(int difficulty)
         speed = 200;
         break;
     case 1:
-        speed = 120;
+        speed = 150;
         break;
     case 2:
-        speed = 70;
+        speed = 100;
         break;
     default:
-        speed = 120;
+        speed = 150;
     }
 
-    // Initialize Snake Starting Position
+    // Initialize Snake Starting Position (centered based on grid size)
+    int centerX = m_gridSize / 2;
+    int centerY = m_gridSize / 2;
+
     m_snake.clear();
-    m_snake.append(QPoint(10, 10));
-    m_snake.append(QPoint(9, 10));
-    m_snake.append(QPoint(8, 10));
+    m_snake.append(QPoint(centerX, centerY));
+    m_snake.append(QPoint(centerX - 1, centerY));
+    m_snake.append(QPoint(centerX - 2, centerY));
 
     // Reset Game State
     m_direction = QPoint(1, 0);
@@ -136,10 +262,16 @@ void Snake::initGame(int difficulty)
     m_score = 0;
     m_gameOver = false;
     m_paused = false;
+    m_particles.clear();
+
+    // Update gradient for new difficulty
+    createGradientBackground();
+
+    // Spawn first food
+    spawnFood();
 
     // Start Game Components
     updateScore(0);
-    spawnFood();
     m_timer->start(speed);
     m_headAnimation->start();
 
@@ -153,8 +285,8 @@ void Snake::initGame(int difficulty)
 void Snake::pauseGame()
 {
     if (!m_paused && !m_gameOver) {
-        m_timer->stop();
-        m_particleTimer->stop();
+        if (m_timer) m_timer->stop();
+        if (m_particleTimer) m_particleTimer->stop();
         m_paused = true;
         emit gamePaused();
         update();
@@ -166,9 +298,9 @@ void Snake::pauseGame()
  */
 void Snake::resumeGame()
 {
-    if (m_paused) {
-        m_timer->start();
-        m_particleTimer->start();
+    if (m_paused && !m_gameOver) {
+        if (m_timer) m_timer->start();
+        if (m_particleTimer) m_particleTimer->start();
         m_paused = false;
         emit gameResumed();
         update();
@@ -182,16 +314,26 @@ void Snake::resumeGame()
 void Snake::setDifficulty(int difficulty)
 {
     m_currentDifficulty = difficulty;
+
+    // Update grid size
+    updateGridSizeForDifficulty();
+
+    // Update speed
     int speed;
     switch(difficulty) {
     case 0: speed = 200; break;
-    case 1: speed = 120; break;
-    case 2: speed = 70; break;
-    default: speed = 120;
+    case 1: speed = 150; break;
+    case 2: speed = 100; break;
+    default: speed = 150;
     }
-    if (!m_gameOver && !m_paused) {
+
+    if (!m_gameOver && !m_paused && m_timer) {
         m_timer->setInterval(speed);
     }
+
+    // Update gradient
+    createGradientBackground();
+    update();
 }
 
 /**
@@ -199,18 +341,30 @@ void Snake::setDifficulty(int difficulty)
  */
 void Snake::spawnFood()
 {
-    int maxX = width() / m_cellSize - 1;
-    int maxY = height() / m_cellSize - 1;
+    if (m_gridSize <= 0) return;
+
+    int maxX = m_gridSize - 1;
+    int maxY = m_gridSize - 1;
 
     if (maxX <= 0 || maxY <= 0) return;
+
+    // Check if snake fills the entire grid (win condition)
+    if (m_snake.size() >= m_gridSize * m_gridSize) {
+        // Player wins!
+        m_timer->stop();
+        m_particleTimer->stop();
+        m_gameOver = true;
+        showWinDialog();
+        return;
+    }
 
     // Find Valid Position Not Occupied By Snake
     int attempts = 0;
     bool validPosition = false;
 
     while (!validPosition && attempts < 1000) {
-        int x = QRandomGenerator::global()->bounded(0, maxX);
-        int y = QRandomGenerator::global()->bounded(0, maxY);
+        int x = QRandomGenerator::global()->bounded(0, maxX + 1);
+        int y = QRandomGenerator::global()->bounded(0, maxY + 1);
         m_food = QPoint(x, y);
 
         if (!m_snake.contains(m_food)) {
@@ -219,14 +373,26 @@ void Snake::spawnFood()
         attempts++;
     }
 
+    // If no valid position found after many attempts, game is won
+    if (!validPosition) {
+        m_timer->stop();
+        m_particleTimer->stop();
+        m_gameOver = true;
+        showWinDialog();
+        return;
+    }
+
     // Create Particle Effect For New Food
-    for (int i = 0; i < 8; ++i) {
+    int particleCount = qBound(5, m_cellSize / 5, 12);
+    for (int i = 0; i < particleCount; ++i) {
         m_particles.append(QPointF(
             m_food.x() * m_cellSize + m_cellSize/2,
             m_food.y() * m_cellSize + m_cellSize/2
             ));
     }
-    m_particleTimer->start();
+    if (!m_particleTimer->isActive()) {
+        m_particleTimer->start();
+    }
 }
 
 /**
@@ -234,7 +400,7 @@ void Snake::spawnFood()
  */
 void Snake::moveSnake()
 {
-    if (m_gameOver || m_paused) return;
+    if (m_gameOver || m_paused || m_snake.isEmpty()) return;
 
     // Update Direction If Valid (Prevent Reversing)
     if (m_nextDirection != -m_direction && m_nextDirection != QPoint(0,0)) {
@@ -275,15 +441,14 @@ bool Snake::checkCollision()
     if (m_snake.isEmpty()) return true;
 
     QPoint head = m_snake.first();
-    int maxX = width() / m_cellSize;
-    int maxY = height() / m_cellSize;
 
     // Check Wall Collision
-    if (head.x() < 0 || head.x() >= maxX || head.y() < 0 || head.y() >= maxY) {
+    if (head.x() < 0 || head.x() >= m_gridSize ||
+        head.y() < 0 || head.y() >= m_gridSize) {
         return true;
     }
 
-    // Check Self Collision
+    // Check Self Collision (skip head at index 0)
     for (int i = 1; i < m_snake.size(); ++i) {
         if (m_snake[i] == head) return true;
     }
@@ -314,7 +479,15 @@ void Snake::animateHead()
  */
 void Snake::keyPressEvent(QKeyEvent *event)
 {
-    if (m_gameOver) return;
+    if (!event) return;
+
+    // Handle game over state - restart with R key
+    if (m_gameOver) {
+        if (event->key() == Qt::Key_R) {
+            initGame(m_currentDifficulty);
+        }
+        return;
+    }
 
     // Set Next Direction Based On Key Press
     if (event->key() == Qt::Key_Up && m_direction != QPoint(0, 1)) {
@@ -334,12 +507,10 @@ void Snake::keyPressEvent(QKeyEvent *event)
         else pauseGame();
     }
     else if (event->key() == Qt::Key_Escape) {
-        if (!m_gameOver) {
-            m_timer->stop();
-            m_particleTimer->stop();
-            hide();
-            emit backToHome();
-        }
+        m_timer->stop();
+        m_particleTimer->stop();
+        hide();
+        emit backToHome();
     }
 
     QWidget::keyPressEvent(event);
@@ -351,6 +522,10 @@ void Snake::keyPressEvent(QKeyEvent *event)
  */
 void Snake::resizeEvent(QResizeEvent *event)
 {
+    // Recalculate cell size when widget is resized
+    if (m_gridSize > 0) {
+        calculateCellSize();
+    }
     createGradientBackground();
     QWidget::resizeEvent(event);
 }
@@ -368,19 +543,25 @@ void Snake::paintEvent(QPaintEvent * /*event*/)
     // Draw Background
     painter.fillRect(rect(), m_backgroundGradient);
 
-    // Draw Grid Overlay
-    painter.setPen(QPen(QColor(255, 255, 255, 20), 1));
-    for (int x = 0; x < width(); x += m_cellSize) {
-        painter.drawLine(x, 0, x, height());
-    }
-    for (int y = 0; y < height(); y += m_cellSize) {
-        painter.drawLine(0, y, width(), y);
+    // Draw Grid Overlay (more subtle on larger screens)
+    if (m_gridSize > 0 && m_cellSize > 0) {
+        int gridAlpha = qBound(10, 30 - (m_cellSize / 5), 30);
+        painter.setPen(QPen(QColor(255, 255, 255, gridAlpha), 1));
+
+        int gridWidth = m_gridSize * m_cellSize;
+        for (int x = 0; x <= gridWidth; x += m_cellSize) {
+            painter.drawLine(x, 0, x, gridWidth);
+        }
+        for (int y = 0; y <= gridWidth; y += m_cellSize) {
+            painter.drawLine(0, y, gridWidth, y);
+        }
     }
 
     int blockSize = m_cellSize - 2;
+    int cornerRadius = qBound(4, m_cellSize / 4, 12);
 
     // Draw Food
-    if (m_food.x() >= 0 && m_food.y() >= 0) {
+    if (m_food.x() >= 0 && m_food.y() >= 0 && m_gridSize > 0) {
         QRadialGradient foodGradient(
             m_food.x() * m_cellSize + m_cellSize/2,
             m_food.y() * m_cellSize + m_cellSize/2,
@@ -401,9 +582,10 @@ void Snake::paintEvent(QPaintEvent * /*event*/)
     }
 
     // Draw Particle Effects
+    int particleSize = qBound(2, m_cellSize / 8, 4);
     painter.setBrush(QColor(255, 255, 255, 100));
     for (const auto &particle : m_particles) {
-        painter.drawEllipse(particle, 3, 3);
+        painter.drawEllipse(particle, particleSize, particleSize);
     }
 
     // Draw Snake Body
@@ -436,9 +618,9 @@ void Snake::paintEvent(QPaintEvent * /*event*/)
             }
 
             painter.setPen(Qt::NoPen);
-            painter.drawRoundedRect(rect, 10, 10);
+            painter.drawRoundedRect(rect, cornerRadius, cornerRadius);
 
-            // Draw Eyes Based On Direction
+            // Draw Eyes Based On Direction (scaled with cell size)
             painter.setBrush(Qt::white);
             float eyeSize = rect.width() * 0.2;
             float pupilSize = eyeSize * 0.5;
@@ -493,7 +675,7 @@ void Snake::paintEvent(QPaintEvent * /*event*/)
 
             painter.setBrush(bodyGradient);
             painter.setPen(QPen(QColor(255, 255, 255, 50), 1));
-            painter.drawRoundedRect(rect, 8, 8);
+            painter.drawRoundedRect(rect, cornerRadius - 2, cornerRadius - 2);
         }
     }
 
@@ -503,22 +685,24 @@ void Snake::paintEvent(QPaintEvent * /*event*/)
         painter.setPen(Qt::NoPen);
         painter.drawEllipse(m_food.x() * m_cellSize + m_cellSize/2 + m_shadowOffset,
                             m_food.y() * m_cellSize + m_cellSize/2 + m_shadowOffset,
-                            m_cellSize/2, m_cellSize/2);
+                            m_cellSize/3, m_cellSize/3);
     }
 
-    // Draw Current Score
+    // Draw Current Score (scaled with widget)
     painter.setPen(Qt::white);
-    QFont scoreFont = QFont("Arial", 24, QFont::Bold);
+    int scoreFontSize = qBound(16, width() / 15, 32);
+    QFont scoreFont = QFont("Arial", scoreFontSize, QFont::Bold);
     scoreFont.setLetterSpacing(QFont::AbsoluteSpacing, 2);
     painter.setFont(scoreFont);
 
-    QRect scoreRect(0, height() - 60, width(), 40);
+    QRect scoreRect(0, height() - scoreFontSize * 2, width(), scoreFontSize * 1.5);
     painter.drawText(scoreRect, Qt::AlignCenter, QString("%1").arg(m_score));
 
     // Draw Pause Indicator
     if (m_paused) {
         painter.setPen(QPen(QColor(255, 255, 255, 200), 3));
-        painter.setFont(QFont("Arial", 32, QFont::Bold));
+        int pauseFontSize = qBound(24, width() / 10, 48);
+        painter.setFont(QFont("Arial", pauseFontSize, QFont::Bold));
         painter.drawText(rect(), Qt::AlignCenter, "PAUSED");
     }
 }
@@ -535,14 +719,18 @@ void Snake::updateScore(int newScore)
 }
 
 /**
- * @brief Displays The Game Over Dialog With Score And Options
+ * @brief Displays The Win Dialog
  */
-void Snake::showGameOverDialog()
+void Snake::showWinDialog()
 {
+    // Calculate overlay size based on widget size
+    int overlayWidth = qMin(400, width() - 100);
+    int overlayHeight = qMin(480, height() - 100);
+
     // Create Overlay Widget
     QWidget *overlay = new QWidget(this);
-    overlay->setFixedSize(400, 480);
-    overlay->move((width() - 400) / 2, (height() - 480) / 2);
+    overlay->setFixedSize(overlayWidth, overlayHeight);
+    overlay->move((width() - overlayWidth) / 2, (height() - overlayHeight) / 2);
 
     overlay->setStyleSheet(
         "background-color: #1a1e2b;"
@@ -562,29 +750,31 @@ void Snake::showGameOverDialog()
     layout->setSpacing(15);
     layout->setContentsMargins(40, 35, 40, 35);
 
-    // Create Game Over Title
-    QLabel *gameOverLabel = new QLabel("GAME OVER");
-    gameOverLabel->setFixedHeight(60);
-    gameOverLabel->setAlignment(Qt::AlignCenter);
-    gameOverLabel->setStyleSheet(
-        "QLabel {"
-        "   background-color: #2a2f3c;"
-        "   color: #ff5e5e;"
-        "   border-radius: 30px;"
-        "   font-size: 28px;"
-        "   font-weight: 900;"
-        "   font-family: 'Arial Black';"
-        "   letter-spacing: 2px;"
-        "}"
+    // Create Win Title
+    QLabel *winLabel = new QLabel("🎉 YOU WIN! 🎉");
+    winLabel->setFixedHeight(overlayHeight / 8);
+    winLabel->setAlignment(Qt::AlignCenter);
+
+    int titleFontSize = qBound(20, overlayWidth / 12, 28);
+    winLabel->setStyleSheet(
+        QString("QLabel {"
+                "   background-color: #2a2f3c;"
+                "   color: #2ecc71;"
+                "   border-radius: %1px;"
+                "   font-size: %2px;"
+                "   font-weight: 900;"
+                "   font-family: 'Arial Black';"
+                "   letter-spacing: 2px;"
+                "}").arg(overlayHeight / 16).arg(titleFontSize)
         );
-    layout->addWidget(gameOverLabel);
+    layout->addWidget(winLabel);
 
     // Add Decorative Line
     QFrame *line = new QFrame();
     line->setFixedHeight(4);
-    line->setFixedWidth(200);
+    line->setFixedWidth(overlayWidth / 2);
     line->setStyleSheet(
-        "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 transparent, stop:0.5 #3498db, stop:1 transparent);"
+        "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 transparent, stop:0.5 #2ecc71, stop:1 transparent);"
         "border-radius: 2px;"
         );
     layout->addWidget(line, 0, Qt::AlignCenter);
@@ -593,7 +783,7 @@ void Snake::showGameOverDialog()
 
     // Create Score Display Card
     QWidget *scoreCard = new QWidget();
-    scoreCard->setFixedHeight(110);
+    scoreCard->setFixedHeight(overlayHeight / 4);
     scoreCard->setStyleSheet(
         "QWidget {"
         "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #232837, stop:1 #1c212d);"
@@ -612,7 +802,9 @@ void Snake::showGameOverDialog()
 
     QLabel *scoreValue = new QLabel(QString("%1").arg(m_score));
     scoreValue->setAlignment(Qt::AlignCenter);
-    scoreValue->setStyleSheet("color: #ffffff; font-size: 46px; font-weight: 800; border: none; background: transparent;");
+
+    int scoreFontSize = qBound(32, overlayWidth / 8, 46);
+    scoreValue->setStyleSheet(QString("color: #ffffff; font-size: %1px; font-weight: 800; border: none; background: transparent;").arg(scoreFontSize));
 
     scoreLayout->addWidget(scoreTitle);
     scoreLayout->addWidget(scoreValue);
@@ -623,7 +815,7 @@ void Snake::showGameOverDialog()
     // Create Action Buttons
     QPushButton *restartBtn = new QPushButton("PLAY AGAIN");
     restartBtn->setCursor(Qt::PointingHandCursor);
-    restartBtn->setFixedHeight(56);
+    restartBtn->setFixedHeight(overlayHeight / 8);
     restartBtn->setStyleSheet(
         "QPushButton {"
         "   background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #2ecc71, stop:1 #27ae60);"
@@ -638,7 +830,7 @@ void Snake::showGameOverDialog()
 
     QPushButton *homeBtn = new QPushButton("HOME");
     homeBtn->setCursor(Qt::PointingHandCursor);
-    homeBtn->setFixedHeight(56);
+    homeBtn->setFixedHeight(overlayHeight / 8);
     homeBtn->setStyleSheet(
         "QPushButton {"
         "   background-color: #2f3545;"
@@ -676,3 +868,158 @@ void Snake::showGameOverDialog()
         emit backToHome();
     });
 }
+
+/**
+ * @brief Displays The Game Over Dialog With Score And Options
+ */
+void Snake::showGameOverDialog()
+{
+    // Calculate overlay size based on widget size
+    int overlayWidth = qMin(400, width() - 100);
+    int overlayHeight = qMin(480, height() - 100);
+
+    // Create Overlay Widget
+    QWidget *overlay = new QWidget(this);
+    overlay->setFixedSize(overlayWidth, overlayHeight);
+    overlay->move((width() - overlayWidth) / 2, (height() - overlayHeight) / 2);
+
+    overlay->setStyleSheet(
+        "background-color: #1a1e2b;"
+        "border-radius: 40px;"
+        "border: 1px solid #2a2f3c;"
+        );
+
+    // Add Shadow Effect
+    QGraphicsDropShadowEffect *shadowEffect = new QGraphicsDropShadowEffect();
+    shadowEffect->setBlurRadius(40);
+    shadowEffect->setColor(QColor(0, 0, 0, 150));
+    shadowEffect->setOffset(0, 8);
+    overlay->setGraphicsEffect(shadowEffect);
+
+    // Setup Main Layout
+    QVBoxLayout *layout = new QVBoxLayout(overlay);
+    layout->setSpacing(15);
+    layout->setContentsMargins(40, 35, 40, 35);
+
+    // Create Game Over Title
+    QLabel *gameOverLabel = new QLabel("GAME OVER");
+    gameOverLabel->setFixedHeight(overlayHeight / 8);
+    gameOverLabel->setAlignment(Qt::AlignCenter);
+
+    int titleFontSize = qBound(20, overlayWidth / 12, 28);
+    gameOverLabel->setStyleSheet(
+        QString("QLabel {"
+                "   background-color: #2a2f3c;"
+                "   color: #ff5e5e;"
+                "   border-radius: %1px;"
+                "   font-size: %2px;"
+                "   font-weight: 900;"
+                "   font-family: 'Arial Black';"
+                "   letter-spacing: 2px;"
+                "}").arg(overlayHeight / 16).arg(titleFontSize)
+        );
+    layout->addWidget(gameOverLabel);
+
+    // Add Decorative Line
+    QFrame *line = new QFrame();
+    line->setFixedHeight(4);
+    line->setFixedWidth(overlayWidth / 2);
+    line->setStyleSheet(
+        "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 transparent, stop:0.5 #e74c3c, stop:1 transparent);"
+        "border-radius: 2px;"
+        );
+    layout->addWidget(line, 0, Qt::AlignCenter);
+
+    layout->addSpacing(5);
+
+    // Create Score Display Card
+    QWidget *scoreCard = new QWidget();
+    scoreCard->setFixedHeight(overlayHeight / 4);
+    scoreCard->setStyleSheet(
+        "QWidget {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #232837, stop:1 #1c212d);"
+        "   border-radius: 55px;"
+        "   border: 1px solid #2a2f3c;"
+        "}"
+        );
+
+    QVBoxLayout *scoreLayout = new QVBoxLayout(scoreCard);
+    scoreLayout->setContentsMargins(0, 15, 0, 15);
+    scoreLayout->setSpacing(0);
+
+    QLabel *scoreTitle = new QLabel("YOUR SCORE");
+    scoreTitle->setAlignment(Qt::AlignCenter);
+    scoreTitle->setStyleSheet("color: #8f9bb5; font-size: 13px; font-weight: 700; border: none; background: transparent;");
+
+    QLabel *scoreValue = new QLabel(QString("%1").arg(m_score));
+    scoreValue->setAlignment(Qt::AlignCenter);
+
+    int scoreFontSize = qBound(32, overlayWidth / 8, 46);
+    scoreValue->setStyleSheet(QString("color: #ffffff; font-size: %1px; font-weight: 800; border: none; background: transparent;").arg(scoreFontSize));
+
+    scoreLayout->addWidget(scoreTitle);
+    scoreLayout->addWidget(scoreValue);
+    layout->addWidget(scoreCard);
+
+    layout->addSpacing(15);
+
+    // Create Action Buttons
+    QPushButton *restartBtn = new QPushButton("PLAY AGAIN");
+    restartBtn->setCursor(Qt::PointingHandCursor);
+    restartBtn->setFixedHeight(overlayHeight / 8);
+    restartBtn->setStyleSheet(
+        "QPushButton {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #e74c3c, stop:1 #c0392b);"
+        "   color: white;"
+        "   border-radius: 28px;"
+        "   font-size: 16px;"
+        "   font-weight: 700;"
+        "   border: none;"
+        "}"
+        "QPushButton:hover { background-color: #c0392b; }"
+        );
+
+    QPushButton *homeBtn = new QPushButton("HOME");
+    homeBtn->setCursor(Qt::PointingHandCursor);
+    homeBtn->setFixedHeight(overlayHeight / 8);
+    homeBtn->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #2f3545;"
+        "   color: #e5e7eb;"
+        "   border-radius: 28px;"
+        "   font-size: 16px;"
+        "   font-weight: 700;"
+        "   border: none;"
+        "}"
+        "QPushButton:hover { background-color: #3f4559; }"
+        );
+
+    layout->addWidget(restartBtn);
+    layout->addWidget(homeBtn);
+
+    // Display Overlay With Fade Animation
+    overlay->show();
+    overlay->raise();
+
+    QPropertyAnimation *fadeAnim = new QPropertyAnimation(overlay, "windowOpacity");
+    fadeAnim->setDuration(350);
+    fadeAnim->setStartValue(0);
+    fadeAnim->setEndValue(1);
+    fadeAnim->start(QAbstractAnimation::DeleteWhenStopped);
+
+    // Connect Button Signals
+    connect(restartBtn, &QPushButton::clicked, [this, overlay](){
+        overlay->deleteLater();
+        initGame(m_currentDifficulty);
+    });
+
+    connect(homeBtn, &QPushButton::clicked, [this, overlay](){
+        overlay->deleteLater();
+        this->hide();
+        emit backToHome();
+    });
+}
+
+/**
+ * @brief Show event override
+ */

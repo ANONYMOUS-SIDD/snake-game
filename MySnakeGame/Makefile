@@ -52,15 +52,47 @@ OBJECTS_DIR   = ./
 
 ####### Files
 
-SOURCES       = main.cpp \
+SOURCES       = gamescreen.cpp \
+		homescreen.cpp \
+		main.cpp \
+		home.cpp \
+		mainHomeScreen.cpp \
 		snake.cpp \
-		home.cpp moc_snake.cpp \
-		moc_home.cpp
-OBJECTS       = main.o \
-		snake.o \
+		minesweeper.cpp \
+		sudokuboard.cpp \
+		sudokucontroller.cpp \
+		sudokugame.cpp \
+		sudokusolver.cpp moc_gamescreen.cpp \
+		moc_basegamescreen.cpp \
+		moc_home.cpp \
+		moc_homescreen.cpp \
+		moc_mainHomeScreen.cpp \
+		moc_snake.cpp \
+		moc_minesweeper.cpp \
+		moc_sudokuboard.cpp \
+		moc_sudokucontroller.cpp \
+		moc_sudokusolver.cpp
+OBJECTS       = gamescreen.o \
+		homescreen.o \
+		main.o \
 		home.o \
+		mainHomeScreen.o \
+		snake.o \
+		minesweeper.o \
+		sudokuboard.o \
+		sudokucontroller.o \
+		sudokugame.o \
+		sudokusolver.o \
+		moc_gamescreen.o \
+		moc_basegamescreen.o \
+		moc_home.o \
+		moc_homescreen.o \
+		moc_mainHomeScreen.o \
 		moc_snake.o \
-		moc_home.o
+		moc_minesweeper.o \
+		moc_sudokuboard.o \
+		moc_sudokucontroller.o \
+		moc_sudokusolver.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/unix.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/linux.conf \
@@ -138,10 +170,29 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/exceptions.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/yacc.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf \
-		MySnakeGame.pro snake.h \
-		home.h main.cpp \
+		MySnakeGame.pro gamescreen.h \
+		gamesizes.h \
+		gamesizes.h \
+		basegamescreen.h \
+		home.h \
+		homescreen.h \
+		mainHomeScreen.h \
+		snake.h \
+		minesweeper.h \
+		sudokuboard.h \
+		sudokucontroller.h \
+		sudokugame.h \
+		sudokusolver.h gamescreen.cpp \
+		homescreen.cpp \
+		main.cpp \
+		home.cpp \
+		mainHomeScreen.cpp \
 		snake.cpp \
-		home.cpp
+		minesweeper.cpp \
+		sudokuboard.cpp \
+		sudokucontroller.cpp \
+		sudokugame.cpp \
+		sudokusolver.cpp
 QMAKE_TARGET  = MySnakeGame
 DESTDIR       = 
 TARGET        = MySnakeGame
@@ -325,8 +376,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents snake.h home.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp snake.cpp home.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents gamescreen.h gamesizes.h gamesizes.h basegamescreen.h home.h homescreen.h mainHomeScreen.h snake.h minesweeper.h sudokuboard.h sudokucontroller.h sudokugame.h sudokusolver.h $(DISTDIR)/
+	$(COPY_FILE) --parents gamescreen.cpp homescreen.cpp main.cpp home.cpp mainHomeScreen.cpp snake.cpp minesweeper.cpp sudokuboard.cpp sudokucontroller.cpp sudokugame.cpp sudokusolver.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -358,18 +409,60 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 	g++ -pipe -O2 -std=gnu++1z -Wall -Wextra -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_snake.cpp moc_home.cpp
+compiler_moc_header_make_all: moc_gamescreen.cpp moc_basegamescreen.cpp moc_home.cpp moc_homescreen.cpp moc_mainHomeScreen.cpp moc_snake.cpp moc_minesweeper.cpp moc_sudokuboard.cpp moc_sudokucontroller.cpp moc_sudokusolver.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_snake.cpp moc_home.cpp
-moc_snake.cpp: snake.h \
+	-$(DEL_FILE) moc_gamescreen.cpp moc_basegamescreen.cpp moc_home.cpp moc_homescreen.cpp moc_mainHomeScreen.cpp moc_snake.cpp moc_minesweeper.cpp moc_sudokuboard.cpp moc_sudokucontroller.cpp moc_sudokusolver.cpp
+moc_gamescreen.cpp: gamescreen.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/anonymous/SnakeGame/MySnakeGame/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/anonymous/SnakeGame/MySnakeGame -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include snake.h -o moc_snake.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/anonymous/SnakeGame/MySnakeGame/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/anonymous/SnakeGame/MySnakeGame -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include gamescreen.h -o moc_gamescreen.cpp
+
+moc_basegamescreen.cpp: basegamescreen.h \
+		gamesizes.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/anonymous/SnakeGame/MySnakeGame/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/anonymous/SnakeGame/MySnakeGame -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include basegamescreen.h -o moc_basegamescreen.cpp
 
 moc_home.cpp: home.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
 	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/anonymous/SnakeGame/MySnakeGame/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/anonymous/SnakeGame/MySnakeGame -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include home.h -o moc_home.cpp
+
+moc_homescreen.cpp: homescreen.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/anonymous/SnakeGame/MySnakeGame/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/anonymous/SnakeGame/MySnakeGame -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include homescreen.h -o moc_homescreen.cpp
+
+moc_mainHomeScreen.cpp: mainHomeScreen.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/anonymous/SnakeGame/MySnakeGame/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/anonymous/SnakeGame/MySnakeGame -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include mainHomeScreen.h -o moc_mainHomeScreen.cpp
+
+moc_snake.cpp: snake.h \
+		gamesizes.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/anonymous/SnakeGame/MySnakeGame/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/anonymous/SnakeGame/MySnakeGame -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include snake.h -o moc_snake.cpp
+
+moc_minesweeper.cpp: minesweeper.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/anonymous/SnakeGame/MySnakeGame/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/anonymous/SnakeGame/MySnakeGame -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include minesweeper.h -o moc_minesweeper.cpp
+
+moc_sudokuboard.cpp: sudokuboard.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/anonymous/SnakeGame/MySnakeGame/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/anonymous/SnakeGame/MySnakeGame -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include sudokuboard.h -o moc_sudokuboard.cpp
+
+moc_sudokucontroller.cpp: sudokucontroller.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/anonymous/SnakeGame/MySnakeGame/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/anonymous/SnakeGame/MySnakeGame -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include sudokucontroller.h -o moc_sudokucontroller.cpp
+
+moc_sudokusolver.cpp: sudokusolver.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/anonymous/SnakeGame/MySnakeGame/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/anonymous/SnakeGame/MySnakeGame -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include sudokusolver.h -o moc_sudokusolver.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -387,21 +480,78 @@ compiler_clean: compiler_moc_predefs_clean compiler_moc_header_clean
 
 ####### Compile
 
-main.o: main.cpp home.h \
-		snake.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
+gamescreen.o: gamescreen.cpp gamescreen.h \
+		sudokuboard.h \
+		sudokusolver.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o gamescreen.o gamescreen.cpp
 
-snake.o: snake.cpp snake.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o snake.o snake.cpp
+homescreen.o: homescreen.cpp homescreen.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o homescreen.o homescreen.cpp
+
+main.o: main.cpp mainHomeScreen.h \
+		home.h \
+		snake.h \
+		gamesizes.h \
+		minesweeper.h \
+		sudokucontroller.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 home.o: home.cpp home.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o home.o home.cpp
 
-moc_snake.o: moc_snake.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_snake.o moc_snake.cpp
+mainHomeScreen.o: mainHomeScreen.cpp mainHomeScreen.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainHomeScreen.o mainHomeScreen.cpp
+
+snake.o: snake.cpp snake.h \
+		gamesizes.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o snake.o snake.cpp
+
+minesweeper.o: minesweeper.cpp minesweeper.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o minesweeper.o minesweeper.cpp
+
+sudokuboard.o: sudokuboard.cpp sudokuboard.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o sudokuboard.o sudokuboard.cpp
+
+sudokucontroller.o: sudokucontroller.cpp sudokucontroller.h \
+		homescreen.h \
+		gamescreen.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o sudokucontroller.o sudokucontroller.cpp
+
+sudokugame.o: sudokugame.cpp sudokugame.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o sudokugame.o sudokugame.cpp
+
+sudokusolver.o: sudokusolver.cpp sudokusolver.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o sudokusolver.o sudokusolver.cpp
+
+moc_gamescreen.o: moc_gamescreen.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_gamescreen.o moc_gamescreen.cpp
+
+moc_basegamescreen.o: moc_basegamescreen.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_basegamescreen.o moc_basegamescreen.cpp
 
 moc_home.o: moc_home.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_home.o moc_home.cpp
+
+moc_homescreen.o: moc_homescreen.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_homescreen.o moc_homescreen.cpp
+
+moc_mainHomeScreen.o: moc_mainHomeScreen.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_mainHomeScreen.o moc_mainHomeScreen.cpp
+
+moc_snake.o: moc_snake.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_snake.o moc_snake.cpp
+
+moc_minesweeper.o: moc_minesweeper.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_minesweeper.o moc_minesweeper.cpp
+
+moc_sudokuboard.o: moc_sudokuboard.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_sudokuboard.o moc_sudokuboard.cpp
+
+moc_sudokucontroller.o: moc_sudokucontroller.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_sudokucontroller.o moc_sudokucontroller.cpp
+
+moc_sudokusolver.o: moc_sudokusolver.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_sudokusolver.o moc_sudokusolver.cpp
 
 ####### Install
 

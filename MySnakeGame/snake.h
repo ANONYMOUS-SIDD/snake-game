@@ -14,6 +14,8 @@
 #include <QColor>
 #include <QPainter>
 #include <QResizeEvent>
+#include <QShowEvent>  // Add this for showEvent
+#include "gamesizes.h"  // Add this for universal sizing
 
 // Snake Game Widget Class Responsible For Core Gameplay Logic And Rendering
 class Snake : public QWidget
@@ -63,6 +65,12 @@ public:
         else resumeGame();
     }
 
+    // Get current cell size (useful for parent layout)
+    int cellSize() const { return m_cellSize; }
+
+    // Get grid size (number of cells)
+    int gridSize() const { return m_gridSize; }
+
 signals:
     // Signal Emitted When Game Starts
     void gameStarted();
@@ -89,6 +97,9 @@ protected:
     // Adjust Layout And Grid When Window Is Resized
     void resizeEvent(QResizeEvent *event) override;
 
+    // Handle widget show event - start game when shown
+    void showEvent(QShowEvent *event) override;
+
 private slots:
     // Main Game Loop Executed On Timer Timeout
     void gameLoop();
@@ -106,6 +117,9 @@ private:
     // Spawn Food At Random Valid Position
     void spawnFood();
 
+    // Display Win Dialog When Player Fills The Grid
+    void showWinDialog();
+
     // Display Game Over Dialog With Final Score
     void showGameOverDialog();
 
@@ -114,6 +128,15 @@ private:
 
     // Create Gradient Background For Game Area
     void createGradientBackground();
+
+    // Calculate cell size based on widget size
+    void calculateCellSize();
+
+    // Update grid size based on difficulty and screen
+    void updateGridSizeForDifficulty();
+
+    // Calculate optimal widget size based on screen
+    QSize calculateOptimalSize() const;
 
     // Game State Variables
     QVector<QPoint> m_snake;        // Stores Snake Body Segments
@@ -124,8 +147,8 @@ private:
     bool m_gameOver;                // Game Over Flag
     bool m_paused;                  // Pause State Flag
     int m_score;                    // Current Player Score
-    int m_gridSize;                 // Grid Dimension Count
-    int m_cellSize;                 // Pixel Size Of Each Grid Cell
+    int m_gridSize;                 // Grid Dimension Count (e.g., 15, 20, 25 based on difficulty)
+    int m_cellSize;                 // Pixel Size Of Each Grid Cell (calculated dynamically)
     int m_currentDifficulty;        // Selected Difficulty Level
 
     // Visual Enhancement Variables

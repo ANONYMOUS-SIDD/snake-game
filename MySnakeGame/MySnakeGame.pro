@@ -1,26 +1,38 @@
-# Qt Project Configuration File For Snake Game Application
-# Specifies Modules, Compiler Options, Source Files, And Headers
-
 # Core Qt Modules Required For The Application
-QT       += core gui widgets
+QT += core gui widgets
 
 # C++ Language Standard Configuration
-# Enables C++17 Features And Syntax
 CONFIG += c++17
 
 # Source Files To Be Compiled
-# Contains Main Entry Point And Implementation Files
 SOURCES += \
+    gamescreen.cpp \
+    homescreen.cpp \
     main.cpp \
+    home.cpp \
+    mainHomeScreen.cpp \
     snake.cpp \
-    home.cpp
+    minesweeper.cpp \
+    sudokuboard.cpp \
+    sudokucontroller.cpp \
+    sudokugame.cpp \
+    sudokusolver.cpp
 
 # Header Files Containing Class Declarations
-# Defines The Interfaces For Snake And Home Classes
 HEADERS += \
+    gamescreen.h \
+    gamesizes.h \
+    gamesizes.h \           # Add this line
+    basegamescreen.h \       # Add this line (optional)
+    home.h \
+    homescreen.h \
+    mainHomeScreen.h \
     snake.h \
-    home.h
+    minesweeper.h \
+    sudokuboard.h \
+    sudokucontroller.h \
+    sudokugame.h \
+    sudokusolver.h
 
 # UI Form Files (Currently Empty)
-# Reserved For Future GUI Designer Integration
 FORMS +=

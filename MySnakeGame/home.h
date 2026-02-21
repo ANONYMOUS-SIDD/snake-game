@@ -53,8 +53,8 @@ signals:
     // Signal To Start Snake Game With Selected Difficulty
     void startSnakeGame(int difficulty);
 
-    // Signal To Exit The Game Application
-    void exitGame();
+    // Signal To Navigate Back To Main Home Screen
+    void backToMainHome();
 
 protected:
     // Handle Custom Painting Of Background And UI Effects
@@ -70,7 +70,7 @@ private slots:
     // Handle Start Button Click Event
     void onStartClicked();
 
-    // Handle Exit Button Click Event
+    // Handle Exit Button Click Event (Now navigates to main menu)
     void onExitClicked();
 
     // Handle Difficulty Selection Change
@@ -100,7 +100,7 @@ private:
 
     // UI Button Components
     QPushButton *m_startBtn;
-    QPushButton *m_exitBtn;
+    QPushButton *m_exitBtn;      // Now acts as "BACK TO MENU" button
 
     // Title And Informational Labels
     QLabel *m_titleLabel;

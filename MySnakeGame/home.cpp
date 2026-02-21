@@ -13,12 +13,14 @@
 #include <QHBoxLayout>
 #include <algorithm>
 
+
 // Constructor To Initialize Home Screen And Core Components
 Home::Home(QWidget *parent)
     : QWidget(parent)
     , m_currentDifficulty(1)
     , m_titleScale(1.0)
     , m_highScoreValue(nullptr)
+    , m_titleAnimation(nullptr)
 {
     setFixedSize(600, 700);
     setWindowTitle("Snake Game");
@@ -166,14 +168,14 @@ void Home::setupUI()
         "}"
         );
 
-    // Configure Exit Button
-    m_exitBtn = new QPushButton("EXIT");
+    // Configure Exit Button (Now navigates to main home screen)
+    m_exitBtn = new QPushButton("BACK TO MENU");
     m_exitBtn->setCursor(Qt::PointingHandCursor);
     m_exitBtn->setFixedHeight(50);
     m_exitBtn->setMinimumWidth(200);
     m_exitBtn->setStyleSheet(
         "QPushButton {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #ff6b6b, stop:1 #ff4757);"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #95a5a6, stop:1 #7f8c8d);"
         "   color: white;"
         "   border-radius: 25px;"
         "   font-size: 18px;"
@@ -181,10 +183,10 @@ void Home::setupUI()
         "   border: none;"
         "}"
         "QPushButton:hover {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #ff4757, stop:1 #ff6b6b);"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #7f8c8d, stop:1 #95a5a6);"
         "}"
         "QPushButton:pressed {"
-        "   background-color: #ff2222;"
+        "   background-color: #6c7a7d;"
         "}"
         );
 
@@ -327,10 +329,10 @@ void Home::onStartClicked()
     emit startSnakeGame(m_currentDifficulty);
 }
 
-// Exit Application
+// Handle Exit Button Click - Navigate to Main Home Screen
 void Home::onExitClicked()
 {
-    QApplication::quit();
+    emit backToMainHome();  // Now emits backToMainHome instead of quitting
 }
 
 // Paint Custom Background And Decorative Particles
@@ -358,13 +360,13 @@ void Home::resizeEvent(QResizeEvent *event)
     QWidget::resizeEvent(event);
 }
 
-// Handle Keyboard Shortcuts For Start And Exit Actions
+// Handle Keyboard Shortcuts For Start And Back Actions
 void Home::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter) {
         onStartClicked();
     } else if (event->key() == Qt::Key_Escape) {
-        onExitClicked();
+        onExitClicked();  // Escape now navigates back to main menu
     }
 
     QWidget::keyPressEvent(event);

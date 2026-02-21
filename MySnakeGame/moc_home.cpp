@@ -23,7 +23,7 @@ QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_Home_t {
     QByteArrayData data[11];
-    char stringdata0[128];
+    char stringdata0[134];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -36,19 +36,19 @@ QT_MOC_LITERAL(0, 0, 4), // "Home"
 QT_MOC_LITERAL(1, 5, 14), // "startSnakeGame"
 QT_MOC_LITERAL(2, 20, 0), // ""
 QT_MOC_LITERAL(3, 21, 10), // "difficulty"
-QT_MOC_LITERAL(4, 32, 8), // "exitGame"
-QT_MOC_LITERAL(5, 41, 14), // "onStartClicked"
-QT_MOC_LITERAL(6, 56, 13), // "onExitClicked"
-QT_MOC_LITERAL(7, 70, 19), // "onDifficultyChanged"
-QT_MOC_LITERAL(8, 90, 2), // "id"
-QT_MOC_LITERAL(9, 93, 23), // "updateHighScoresDisplay"
-QT_MOC_LITERAL(10, 117, 10) // "titleScale"
+QT_MOC_LITERAL(4, 32, 14), // "backToMainHome"
+QT_MOC_LITERAL(5, 47, 14), // "onStartClicked"
+QT_MOC_LITERAL(6, 62, 13), // "onExitClicked"
+QT_MOC_LITERAL(7, 76, 19), // "onDifficultyChanged"
+QT_MOC_LITERAL(8, 96, 2), // "id"
+QT_MOC_LITERAL(9, 99, 23), // "updateHighScoresDisplay"
+QT_MOC_LITERAL(10, 123, 10) // "titleScale"
 
     },
     "Home\0startSnakeGame\0\0difficulty\0"
-    "exitGame\0onStartClicked\0onExitClicked\0"
-    "onDifficultyChanged\0id\0updateHighScoresDisplay\0"
-    "titleScale"
+    "backToMainHome\0onStartClicked\0"
+    "onExitClicked\0onDifficultyChanged\0id\0"
+    "updateHighScoresDisplay\0titleScale"
 };
 #undef QT_MOC_LITERAL
 
@@ -98,7 +98,7 @@ void Home::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void *
         (void)_t;
         switch (_id) {
         case 0: _t->startSnakeGame((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 1: _t->exitGame(); break;
+        case 1: _t->backToMainHome(); break;
         case 2: _t->onStartClicked(); break;
         case 3: _t->onExitClicked(); break;
         case 4: _t->onDifficultyChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
@@ -116,7 +116,7 @@ void Home::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void *
         }
         {
             using _t = void (Home::*)();
-            if (*reinterpret_cast<_t *>(_a[1]) == static_cast<_t>(&Home::exitGame)) {
+            if (*reinterpret_cast<_t *>(_a[1]) == static_cast<_t>(&Home::backToMainHome)) {
                 *result = 1;
                 return;
             }
@@ -209,7 +209,7 @@ void Home::startSnakeGame(int _t1)
 }
 
 // SIGNAL 1
-void Home::exitGame()
+void Home::backToMainHome()
 {
     QMetaObject::activate(this, &staticMetaObject, 1, nullptr);
 }
